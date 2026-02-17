@@ -23,7 +23,7 @@ const server = http.createServer(app);
 // 🔥 Setup Socket.IO
 export const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: ["http://localhost:5173", "http://localhost:5174","urban-watch-frontend.vercel.app"],
     methods: ["GET", "POST", "PATCH"],
     credentials: true,
   },
