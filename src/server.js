@@ -23,11 +23,16 @@ const server = http.createServer(app);
 // 🔥 Setup Socket.IO
 export const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174","urban-watch-frontend.vercel.app"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://urban-watch-frontend-99hv4w9yt.vercel.app"
+    ],
     methods: ["GET", "POST", "PATCH"],
     credentials: true,
   },
 });
+
 
 // Socket connection
 io.on("connection", (socket) => {
@@ -48,9 +53,15 @@ io.on("connection", (socket) => {
 // Middleware
 app.use(
   cors({
-    origin: "*", // later restrict to frontend url
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://urban-watch-frontend-99hv4w9yt.vercel.app"
+    ],
+    credentials: true,
   }),
 );
+
 app.use(express.json());
 
 // Routes
