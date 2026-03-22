@@ -1,5 +1,5 @@
 import Notification from "../models/Notification.js";
-import { io } from "../server.js";
+import { io } from "../../server.js";
 
 export const createNotification = async (userId, message) => {
   // Save in DB

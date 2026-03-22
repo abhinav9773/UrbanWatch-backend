@@ -1,13 +1,14 @@
 import cron from "node-cron";
 import Issue from "../models/Issue.js";
+import User from "../models/User.js";
 import { createNotification } from "../utils/createNotification.js";
 
-// Runs every 5 minutes
 cron.schedule("*/5 * * * *", async () => {
   try {
     console.log("⏱️ SLA Monitor running...");
 
     const now = new Date();
+    const admin = await User.findOne({ role: "admin" });
 
     const overdueIssues = await Issue.find({
       dueAt: { $lt: now },
@@ -15,7 +16,6 @@ cron.schedule("*/5 * * * *", async () => {
     });
 
     for (const issue of overdueIssues) {
-      // Notify engineer (if assigned)
       if (issue.assignedTo) {
         await createNotification(
           issue.assignedTo,
@@ -23,11 +23,12 @@ cron.schedule("*/5 * * * *", async () => {
         );
       }
 
-      // Notify admin
-      await createNotification(
-        "ADMIN",
-        `🚨 SLA Breach: ${issue.title} (${issue._id})`,
-      );
+      if (admin) {
+        await createNotification(
+          admin._id,
+          `🚨 SLA Breach: ${issue.title} (${issue._id})`,
+        );
+      }
     }
 
     if (overdueIssues.length) {

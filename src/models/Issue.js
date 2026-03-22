@@ -1,17 +1,18 @@
 import mongoose from "mongoose";
 
+const updateSchema = new mongoose.Schema(
+  {
+    message: { type: String, required: true },
+    postedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    postedByName: { type: String },
+  },
+  { timestamps: true },
+);
+
 const issueSchema = new mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    description: {
-      type: String,
-      trim: true,
-    },
+    title: { type: String, required: true, trim: true },
+    description: { type: String, trim: true },
 
     category: {
       type: String,
@@ -19,12 +20,7 @@ const issueSchema = new mongoose.Schema(
       required: true,
     },
 
-    severity: {
-      type: Number,
-      min: 1,
-      max: 5,
-      required: true,
-    },
+    severity: { type: Number, min: 1, max: 5, required: true },
 
     status: {
       type: String,
@@ -33,15 +29,8 @@ const issueSchema = new mongoose.Schema(
     },
 
     location: {
-      type: {
-        type: String,
-        enum: ["Point"],
-        required: true,
-      },
-      coordinates: {
-        type: [Number], // [longitude, latitude]
-        required: true,
-      },
+      type: { type: String, enum: ["Point"], required: true },
+      coordinates: { type: [Number], required: true }, // [lng, lat]
     },
 
     wardId: {
@@ -56,22 +45,21 @@ const issueSchema = new mongoose.Schema(
       required: true,
     },
 
-    priorityScore: {
-      type: Number,
-      default: 0,
-    },
-    dueAt: {
-      type: Date,
-    },
+    priorityScore: { type: Number, default: 0 },
+    dueAt: { type: Date },
+
+    // ✅ NEW: Photo URLs from Cloudinary
+    photos: [{ type: String }],
+
+    // ✅ NEW: Upvotes — array of user IDs who upvoted
+    upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+
+    // ✅ NEW: Engineer progress updates
+    updates: [updateSchema],
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
-// 🔥 Geo index (VERY IMPORTANT)
 issueSchema.index({ location: "2dsphere" });
 
-const Issue = mongoose.model("Issue", issueSchema);
-
-export default Issue;
+export default mongoose.model("Issue", issueSchema);

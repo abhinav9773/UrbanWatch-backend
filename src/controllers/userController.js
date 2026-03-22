@@ -1,21 +1,19 @@
-import User from "../models/User.js";
 import bcrypt from "bcryptjs";
+import User from "../models/User.js";
 
-// ============================
-// ADMIN → CREATE ENGINEER
-// ============================
+/* ============================
+   CREATE ENGINEER (ADMIN)
+============================ */
 export const createEngineer = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validate
     if (!name || !email || !password) {
       return res.status(400).json({
         message: "All fields required",
       });
     }
 
-    // Check if exists
     const exists = await User.findOne({ email });
 
     if (exists) {
@@ -24,19 +22,16 @@ export const createEngineer = async (req, res) => {
       });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(password, salt);
+    const hash = await bcrypt.hash(password, 10);
 
-    // Create engineer
     const engineer = await User.create({
       name,
       email,
-      passwordHash: hash,
+      password: hash,
       role: "ENGINEER",
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Engineer created successfully",
       engineer: {
         id: engineer._id,
@@ -48,22 +43,24 @@ export const createEngineer = async (req, res) => {
   } catch (err) {
     console.error("CREATE ENGINEER ERROR:", err);
 
-    res.status(500).json({
-      message: "Failed to create engineer",
+    return res.status(500).json({
+      message: err.message || "Failed to create engineer",
     });
   }
 };
 
-// ============================
-// GET ALL USERS (ADMIN)
-// ============================
+/* ============================
+   GET ALL USERS (ADMIN)
+============================ */
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-passwordHash");
+    const users = await User.find().select("-password");
 
-    res.json(users);
-  } catch {
-    res.status(500).json({
+    return res.json(users);
+  } catch (err) {
+    console.error("GET USERS ERROR:", err);
+
+    return res.status(500).json({
       message: "Failed to fetch users",
     });
   }
