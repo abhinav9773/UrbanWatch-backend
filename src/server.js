@@ -3,16 +3,16 @@ import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
-import connectDB from "./src/config/db.js";
-import "./src/jobs/slaMonitor.js";
+import connectDB from "./config/db.js"; // ← removed ./src/
+import "./jobs/slaMonitor.js"; // ← removed ./src/
 
-import issueRoutes from "./src/routes/issueRoutes.js";
-import authRoutes from "./src/routes/authRoutes.js";
-import userRoutes from "./src/routes/userRoutes.js";
-import assignmentRoutes from "./src/routes/assignmentRoutes.js";
-import statsRoutes from "./src/routes/statsRoutes.js";
-import notificationRoutes from "./src/routes/notificationRoutes.js";
-import pushRoutes from "./src/routes/pushRoutes.js";
+import issueRoutes from "./routes/issueRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import assignmentRoutes from "./routes/assignmentRoutes.js";
+import statsRoutes from "./routes/statsRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import pushRoutes from "./routes/pushRoutes.js";
 
 dotenv.config();
 connectDB();
