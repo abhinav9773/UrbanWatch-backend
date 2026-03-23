@@ -2,10 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
-import { Server } from "socket.io";
-import connectDB from "./config/db.js"; // ← removed ./src/
-import "./jobs/slaMonitor.js"; // ← removed ./src/
-
+import { initSocket } from "./utils/socket.js";
+import connectDB from "./config/db.js";
+import "./jobs/slaMonitor.js";
 import issueRoutes from "./routes/issueRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -20,28 +19,7 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
-export const io = new Server(server, {
-  cors: {
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "https://urban-watch-frontend.vercel.app",
-      "https://urban-watch-frontend-99hv4w9yt.vercel.app",
-    ],
-    methods: ["GET", "POST", "PATCH"],
-    credentials: true,
-  },
-});
-
-io.on("connection", (socket) => {
-  console.log("Socket connected:", socket.id);
-  socket.on("join", ({ userId, role }) => {
-    socket.join(userId);
-    socket.join(role);
-    console.log("User joined:", userId, role);
-  });
-  socket.on("disconnect", () => console.log("Socket disconnected:", socket.id));
-});
+initSocket(server); // ✅ replaces the inline io setup
 
 app.use(cors({ origin: "*" }));
 app.use(express.json());
