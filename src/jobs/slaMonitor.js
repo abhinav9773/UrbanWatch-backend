@@ -1,6 +1,6 @@
 import cron from "node-cron";
-import Issue from "../models/Issue.js";
 import User from "../models/User.js";
+import Issue from "../models/Issue.js";
 import { createNotification } from "../utils/createNotification.js";
 
 cron.schedule("*/5 * * * *", async () => {
