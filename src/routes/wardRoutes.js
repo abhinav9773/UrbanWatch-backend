@@ -4,13 +4,11 @@ import {
   createWard,
   getWards,
   deleteWard,
-  detectWardFromLocation,
 } from "../controllers/wardController.js";
 
 const router = express.Router();
 
 router.get("/", getWards);
-router.get("/detect", detectWardFromLocation); // ✅ auto-detect from GPS
 router.post("/", protect, createWard);
 router.delete("/:id", protect, deleteWard);
 
