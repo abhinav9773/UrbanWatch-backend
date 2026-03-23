@@ -14,6 +14,8 @@ export const initSocket = (server) => {
       methods: ["GET", "POST", "PATCH"],
       credentials: true,
     },
+    transports: ["polling", "websocket"], // ← add this
+    allowUpgrades: true,
   });
 
   io.on("connection", (socket) => {

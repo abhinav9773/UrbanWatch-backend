@@ -7,16 +7,8 @@ import { sendPushToUser } from "../utils/pushNotification.js";
 
 export const createIssue = async (req, res) => {
   try {
-    console.log("CREATE ISSUE BODY >>>", req.body);
-    console.log("CREATE ISSUE FILES >>>", req.files);
-
     const body = req.body || {};
-    const title = body.title;
-    const description = body.description;
-    const category = body.category;
-    const severity = body.severity;
-    const wardId = body.wardId;
-    const reportedBy = body.reportedBy;
+    const { title, description, category, severity, wardId, reportedBy } = body;
 
     let location = body.location;
     if (typeof location === "string") {
@@ -64,7 +56,7 @@ export const createIssue = async (req, res) => {
         title: "Issue Reported",
         body: `Your issue "${title}" has been submitted.`,
       });
-    } catch (e) {}
+    } catch {}
 
     res.status(201).json(issue);
   } catch (error) {
@@ -73,6 +65,7 @@ export const createIssue = async (req, res) => {
   }
 };
 
+// ✅ Get issues with assigned engineer populated
 export const getIssues = async (req, res) => {
   try {
     const { status, category, wardId } = req.query;
@@ -80,12 +73,33 @@ export const getIssues = async (req, res) => {
     if (status) filter.status = status;
     if (category) filter.category = category;
     if (wardId) filter.wardId = wardId;
+
     const issues = await Issue.find(filter).sort({
       priorityScore: -1,
       createdAt: -1,
     });
-    res.status(200).json(issues);
+
+    // For each issue, find the active assignment and populate engineer
+    const issueIds = issues.map((i) => i._id);
+    const assignments = await Assignment.find({
+      issueId: { $in: issueIds },
+      isActive: true,
+    }).populate("engineerId", "name email");
+
+    // Map assignments by issueId
+    const assignmentMap = {};
+    for (const a of assignments) {
+      assignmentMap[a.issueId.toString()] = a.engineerId;
+    }
+
+    const issuesWithEngineer = issues.map((issue) => ({
+      ...issue.toObject(),
+      assignedEngineer: assignmentMap[issue._id.toString()] || null,
+    }));
+
+    res.status(200).json(issuesWithEngineer);
   } catch (error) {
+    console.error("GET ISSUES ERROR:", error);
     res.status(500).json({ message: "Failed to fetch issues" });
   }
 };
@@ -124,7 +138,7 @@ export const updateIssueStatus = async (req, res) => {
         title: "Issue Update",
         body: `Your issue "${issue.title}" is now ${status}.`,
       });
-    } catch (e) {}
+    } catch {}
     res.status(200).json(issue);
   } catch (error) {
     res.status(500).json({ message: "Failed to update status" });
@@ -137,7 +151,7 @@ export const getIssueStatusHistory = async (req, res) => {
       createdAt: 1,
     });
     res.status(200).json(history);
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: "Failed to fetch history" });
   }
 };
@@ -164,7 +178,7 @@ export const assignEngineer = async (req, res) => {
         title: "New Assignment",
         body: `Issue "${issue.title}" assigned to you.`,
       });
-    } catch (e) {}
+    } catch {}
     res.status(201).json(assignment);
   } catch (error) {
     res.status(500).json({ message: "Failed to assign engineer" });
@@ -179,7 +193,7 @@ export const getIssuesAssignedToEngineer = async (req, res) => {
     const issueIds = assignments.map((a) => a.issueId);
     const issues = await Issue.find({ _id: { $in: issueIds } });
     res.status(200).json(issues);
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: "Failed to fetch assigned issues" });
   }
 };
@@ -191,7 +205,7 @@ export const getMyIssues = async (req, res) => {
       createdAt: -1,
     });
     res.json(issues);
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: "Failed to fetch your issues" });
   }
 };
@@ -220,9 +234,9 @@ export const autoAssign = async (req, res) => {
         title: "Auto Assignment",
         body: `Issue "${issue?.title}" auto-assigned.`,
       });
-    } catch (e) {}
+    } catch {}
     res.json(assignment);
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: "Auto assign failed" });
   }
 };
@@ -244,7 +258,7 @@ export const upvoteIssue = async (req, res) => {
     }
     await issue.save();
     res.json({ upvotes: issue.upvotes.length, upvoted: !alreadyUpvoted });
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: "Upvote failed" });
   }
 };
@@ -272,9 +286,9 @@ export const addIssueUpdate = async (req, res) => {
         title: `Update: ${issue.title}`,
         body: message,
       });
-    } catch (e) {}
+    } catch {}
     res.json(issue.updates[issue.updates.length - 1]);
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: "Failed to add update" });
   }
 };
@@ -286,8 +300,15 @@ export const getIssueById = async (req, res) => {
       "name email",
     );
     if (!issue) return res.status(404).json({ message: "Issue not found" });
-    res.json(issue);
-  } catch (error) {
+    const assignment = await Assignment.findOne({
+      issueId: issue._id,
+      isActive: true,
+    }).populate("engineerId", "name email");
+    res.json({
+      ...issue.toObject(),
+      assignedEngineer: assignment?.engineerId || null,
+    });
+  } catch {
     res.status(500).json({ message: "Failed to fetch issue" });
   }
 };
