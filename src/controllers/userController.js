@@ -3,7 +3,7 @@ import User from "../models/User.js";
 
 export const createEngineer = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, wardId } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields required" });
@@ -17,8 +17,9 @@ export const createEngineer = async (req, res) => {
     const engineer = await User.create({
       name,
       email,
-      passwordHash: hash, // ← your schema uses passwordHash not password
+      passwordHash: hash,
       role: "ENGINEER",
+      wardId: wardId || null,
     });
 
     return res.status(201).json({
@@ -28,6 +29,7 @@ export const createEngineer = async (req, res) => {
         name: engineer.name,
         email: engineer.email,
         role: engineer.role,
+        wardId: engineer.wardId,
       },
     });
   } catch (err) {
@@ -40,9 +42,30 @@ export const createEngineer = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-passwordHash");
+    const { role } = req.query;
+    const filter = role ? { role } : {};
+    const users = await User.find(filter)
+      .select("-passwordHash")
+      .populate("wardId", "name number area");
     return res.json(users);
   } catch (err) {
     return res.status(500).json({ message: "Failed to fetch users" });
+  }
+};
+
+// ✅ Update engineer's ward
+export const updateUserWard = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { wardId } = req.body;
+    const user = await User.findByIdAndUpdate(
+      id,
+      { wardId },
+      { new: true },
+    ).select("-passwordHash");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update ward" });
   }
 };

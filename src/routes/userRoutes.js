@@ -1,14 +1,15 @@
 import express from "express";
-import { getAllUsers, createEngineer } from "../controllers/userController.js";
-
-import { protect, adminOnly } from "../middleware/authMiddleware.js";
+import { protect } from "../middleware/authMiddleware.js";
+import {
+  createEngineer,
+  getAllUsers,
+  updateUserWard,
+} from "../controllers/userController.js";
 
 const router = express.Router();
 
-// Admin: get all users
-router.get("/", protect, adminOnly, getAllUsers);
-
-// Admin: create engineer
-router.post("/create-engineer", protect, adminOnly, createEngineer);
+router.get("/", protect, getAllUsers);
+router.post("/create-engineer", protect, createEngineer);
+router.patch("/:id/ward", protect, updateUserWard); // ✅ assign ward to engineer
 
 export default router;
