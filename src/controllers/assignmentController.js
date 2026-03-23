@@ -1,6 +1,6 @@
 import Assignment from "../models/Assignment.js";
 import mongoose from "mongoose";
-import { io } from "../server.js"; // 🔥 Socket.IO (future-ready)
+import { getIO } from "../utils/socket.js";
 
 // ============================
 // ASSIGNMENT HISTORY (ADMIN)
