@@ -12,7 +12,7 @@ import userRoutes from "./src/routes/userRoutes.js";
 import assignmentRoutes from "./src/routes/assignmentRoutes.js";
 import statsRoutes from "./src/routes/statsRoutes.js";
 import notificationRoutes from "./src/routes/notificationRoutes.js";
-import pushRoutes from "./src/routes/pushRoutes.js"; // ✅ NEW
+import pushRoutes from "./src/routes/pushRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -26,6 +26,7 @@ export const io = new Server(server, {
       "http://localhost:5173",
       "http://localhost:5174",
       "https://urban-watch-frontend.vercel.app",
+      "https://urban-watch-frontend-99hv4w9yt.vercel.app",
     ],
     methods: ["GET", "POST", "PATCH"],
     credentials: true,
@@ -34,16 +35,12 @@ export const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
-
   socket.on("join", ({ userId, role }) => {
     socket.join(userId);
     socket.join(role);
     console.log("User joined:", userId, role);
   });
-
-  socket.on("disconnect", () => {
-    console.log("Socket disconnected:", socket.id);
-  });
+  socket.on("disconnect", () => console.log("Socket disconnected:", socket.id));
 });
 
 app.use(cors({ origin: "*" }));
@@ -55,7 +52,7 @@ app.use("/api/issues", issueRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/push", pushRoutes); // ✅ NEW
+app.use("/api/push", pushRoutes);
 
 app.get("/", (req, res) => res.send("UrbanWatch backend running"));
 
