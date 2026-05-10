@@ -23,7 +23,18 @@ router.get("/me", protect, getMyIssues);
 
 // General routes
 router.get("/", protect, getIssues);   // ← added protect here
-router.post("/", protect, upload.array("photos", 5), createIssue);
+router.post("/", protect, (req, res, next) => {
+  upload.array("photos", 5)(req, res, (err) => {
+    if (err) {
+      console.error("UPLOAD ERROR:", err.message);
+      return res.status(500).json({ 
+        message: "File upload failed", 
+        detail: err.message 
+      });
+    }
+    next();
+  });
+}, createIssue);
 
 // Single issue
 router.get("/:id", protect, getIssueById);
