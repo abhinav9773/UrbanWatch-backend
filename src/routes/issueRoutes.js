@@ -17,24 +17,24 @@ import {
 
 const router = express.Router();
 
-// 🔐 Specific protected routes FIRST (before /:id)
+// Specific protected routes FIRST (before /:id)
 router.get("/engineers/me/issues", protect, getIssuesAssignedToEngineer);
 router.get("/me", protect, getMyIssues);
 
 // General routes
-router.get("/", getIssues);
-router.post("/", protect, upload.array("photos", 5), createIssue); // ✅ up to 5 photos
+router.get("/", protect, getIssues);   // ← added protect here
+router.post("/", protect, upload.array("photos", 5), createIssue);
 
 // Single issue
-router.get("/:id", getIssueById);
+router.get("/:id", protect, getIssueById);
 router.patch("/:id/status", protect, updateIssueStatus);
-router.get("/:id/history", getIssueStatusHistory);
+router.get("/:id/history", protect, getIssueStatusHistory);
 
 // Assignment
 router.post("/:id/assign", protect, assignEngineer);
 router.post("/:id/auto-assign", protect, autoAssign);
 
-// ✅ New features
+// Features
 router.post("/:id/upvote", protect, upvoteIssue);
 router.post("/:id/updates", protect, addIssueUpdate);
 
